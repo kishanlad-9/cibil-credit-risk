@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Database & secrets
+*.db
+*.sqlite
+users.json
+.env
+.env.*
+SECRET_KEY
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files (generated)
+*.csv
+X_train.csv
+X_test.csv
+y_train.csv
+y_test.csv
+scaler.pkl
+
+# Logs
+*.log

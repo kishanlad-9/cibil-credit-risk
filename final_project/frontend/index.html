@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CIBIL Credit Risk Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f4f6f9;
+  --white:#ffffff;
+  --border:#dde1e7;
+  --border-focus:#2563eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --muted2:#9ca3af;
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --primary-light:#eff6ff;
+  --danger:#dc2626;
+  --danger-light:#fef2f2;
+  --success:#16a34a;
+  --success-light:#f0fdf4;
+  --warn:#d97706;
+  --warn-light:#fffbeb;
+  --radius:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.1);
+}
+
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+#root{height:100%}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+
+/* ── AUTH ───────────────────────────────────── */
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.auth-box{width:100%;max-width:420px;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:40px;box-shadow:var(--shadow-md)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.auth-logo-mark{width:38px;height:38px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0}
+.auth-logo-name{font-size:18px;font-weight:700;color:var(--text)}
+.auth-heading{font-size:22px;font-weight:700;margin-bottom:4px}
+.auth-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.auth-footer{text-align:center;margin-top:20px;color:var(--muted);font-size:13px}
+.auth-footer a{color:var(--primary);cursor:pointer;font-weight:500;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+.auth-demo{margin-top:14px;padding:10px 14px;background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--muted);text-align:center}
+
+/* ── FORM ELEMENTS ──────────────────────────── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{
+  width:100%;padding:9px 12px;
+  border:1px solid var(--border);border-radius:var(--radius);
+  font-size:14px;font-family:'Inter',sans-serif;color:var(--text);
+  background:var(--white);outline:none;
+  transition:border-color .15s,box-shadow .15s
+}
+.field input:focus,.field select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field input.err{border-color:var(--danger)}
+.field .hint{font-size:11px;color:var(--muted2);margin-top:4px}
+.field .err-msg{font-size:11px;color:var(--danger);margin-top:4px}
+
+/* ── BUTTONS ────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--radius);font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;width:100%;padding:11px}
+.btn-primary:hover:not(:disabled){background:var(--primary-dark)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.btn-ghost{background:transparent;color:var(--muted);padding:8px 12px}
+.btn-ghost:hover{background:#f3f4f6;color:var(--text)}
+.btn-danger-ghost{background:transparent;color:var(--danger);padding:8px 12px}
+.btn-danger-ghost:hover{background:var(--danger-light)}
+
+/* ── ALERTS ─────────────────────────────────── */
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start}
+.alert-error{background:var(--danger-light);border:1px solid #fecaca;color:#991b1b}
+.alert-warn{background:var(--warn-light);border:1px solid #fde68a;color:#92400e}
+.alert-success{background:var(--success-light);border:1px solid #bbf7d0;color:#15803d}
+
+/* ── SPINNER ────────────────────────────────── */
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LAYOUT ─────────────────────────────────── */
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0}
+.sidebar-header{padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:9px}
+.sidebar-mark{width:32px;height:32px;background:var(--primary);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.sidebar-name{font-size:15px;font-weight:700}
+
+.nav{padding:12px 10px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);background:none;border:none;width:100%;text-align:left;transition:all .12s;margin-bottom:2px}
+.nav-item:hover{background:#f3f4f6;color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+
+.sidebar-footer{padding:14px 10px;border-top:1px solid var(--border)}
+.user-card{padding:10px 12px;background:#f8fafc;border-radius:var(--radius);margin-bottom:6px}
+.user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Main content */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{max-width:900px;margin:0 auto;padding:28px 32px}
+
+/* ── PAGE HEADER ─────────────────────────────── */
+.page-header{margin-bottom:24px}
+.page-title{font-size:20px;font-weight:700;margin-bottom:3px}
+.page-sub{font-size:13px;color:var(--muted)}
+
+/* ── CARDS ───────────────────────────────────── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card-title span{font-size:13px;font-weight:500;color:var(--muted);margin-left:auto}
+
+/* ── STATS ───────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:700;line-height:1}
+.stat-note{font-size:11px;color:var(--muted2);margin-top:4px}
+
+/* ── FORM GRID ───────────────────────────────── */
+.form-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.form-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.form-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* ── INPUT WITH UNIT ─────────────────────────── */
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-wrap input{padding-right:52px}
+.input-unit{position:absolute;right:10px;font-size:12px;font-weight:500;color:var(--muted2);pointer-events:none;white-space:nowrap}
+
+/* ── PREDICT RESULT ──────────────────────────── */
+.result-banner{border-radius:10px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.result-banner.safe{background:var(--success-light);border:1px solid #bbf7d0}
+.result-banner.risk{background:var(--danger-light);border:1px solid #fecaca}
+.result-banner.medium{background:var(--warn-light);border:1px solid #fde68a}
+.verdict-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;opacity:.7}
+.verdict-text{font-size:22px;font-weight:700}
+.verdict-text.safe{color:var(--success)}
+.verdict-text.risk{color:var(--danger)}
+.verdict-text.medium{color:var(--warn)}
+.prob-big{font-size:36px;font-weight:700;line-height:1}
+.prob-sub{font-size:11px;font-weight:500;text-align:right;opacity:.7;margin-top:2px}
+
+.prob-bar-wrap{margin:4px 0 6px}
+.prob-track{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.prob-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.metric-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center}
+.metric-box .ml{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+.metric-box .mv{font-size:17px;font-weight:700;color:var(--text)}
+
+.factors-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.factor-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border:1px solid var(--border);border-radius:8px}
+.factor-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.factor-dot.green{background:var(--success)}
+.factor-dot.yellow{background:#eab308}
+.factor-dot.orange{background:var(--warn)}
+.factor-dot.red{background:var(--danger)}
+.factor-name{font-size:12px;font-weight:600;margin-bottom:1px}
+.factor-detail{font-size:11px;color:var(--muted)}
+
+.recommend{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:500}
+.recommend.approve{background:var(--success-light);border:1px solid #bbf7d0;color:#15803d}
+.recommend.caution{background:var(--warn-light);border:1px solid #fde68a;color:#92400e}
+.recommend.reject{background:var(--danger-light);border:1px solid #fecaca;color:#991b1b}
+
+/* ── HISTORY TABLE ───────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 12px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tbody tr:hover td{background:#fafbfc}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-red{background:var(--danger-light);color:var(--danger)}
+.badge-green{background:var(--success-light);color:var(--success)}
+.badge-yellow{background:var(--warn-light);color:var(--warn)}
+
+/* ── EMPTY STATE ─────────────────────────────── */
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* ── MODEL PERF ──────────────────────────────── */
+.perf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.perf-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.perf-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+.perf-value{font-size:22px;font-weight:700;color:var(--primary)}
+.perf-note{font-size:11px;color:var(--muted2);margin-top:2px}
+
+/* ── DIVIDER ─────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:4px 0 16px}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .form-grid-3{grid-template-columns:repeat(2,1fr)}
+  .form-grid-4{grid-template-columns:repeat(2,1fr)}
+  .factors-grid{grid-template-columns:1fr}
+  .page{padding:16px}
+}
+@media(max-width:500px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .form-grid-3,.form-grid-2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, useEffect } = React;
+
+/* ─── API ─────────────────────────────────────────────────── */
+const API = window.location.protocol === "file:" ? "http://localhost:8000" : "";
+
+async function api(path, method = "GET", body = null, token = null) {
+  const h = { "Content-Type": "application/json" };
+  if (token) h["Authorization"] = `Bearer ${token}`;
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, {
+      method, headers: h, body: body ? JSON.stringify(body) : undefined
+    });
+  } catch {
+    throw new Error("Cannot reach backend. Start uvicorn then open http://localhost:8000/app");
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Request failed");
+  return data;
+}
+
+/* ─── SMALL COMPONENTS ────────────────────────────────────── */
+function Alert({ type = "error", children }) {
+  const icon = type === "error" ? "✕" : type === "warn" ? "⚠" : "✓";
+  return <div className={`alert alert-${type}`}><span>{icon}</span><div>{children}</div></div>;
+}
+
+function Field({ label, hint, error, children }) {
+  return (
+    <div className="field">
+      {label && <label>{label}</label>}
+      {children}
+      {hint && !error && <div className="hint">{hint}</div>}
+      {error && <div className="err-msg">{error}</div>}
+    </div>
+  );
+}
+
+function NumField({ label, hint, value, onChange, min, max, step = 1, unit, placeholder, error }) {
+  return (
+    <Field label={label} hint={hint} error={error}>
+      <div className="input-wrap">
+        <input
+          type="number" value={value} min={min} max={max} step={step}
+          placeholder={placeholder}
+          className={error ? "err" : ""}
+          onChange={e => onChange(Number(e.target.value))}
+          style={unit ? { paddingRight: unit.length > 2 ? 56 : 44 } : {}}
+        />
+        {unit && <span className="input-unit">{unit}</span>}
+      </div>
+    </Field>
+  );
+}
+
+function SelectField({ label, hint, value, onChange, options }) {
+  return (
+    <Field label={label} hint={hint}>
+      <select value={value} onChange={e => onChange(e.target.value)}>
+        {options.map(o => (
+          <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>
+        ))}
+      </select>
+    </Field>
+  );
+}
+
+/* ─── AUTH PAGES ──────────────────────────────────────────── */
+function LoginPage({ onLogin, goSignup }) {
+  const [email, setEmail]     = useState("");
+  const [password, setPass]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const submit = async () => {
+    if (!email || !password) return setError("Please fill in both fields.");
+    setError(""); setLoading(true);
+    try {
+      const d = await api("/auth/login", "POST", { email, password });
+      onLogin(d);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-box">
+        <div className="auth-logo">
+          <div className="auth-logo-mark">CR</div>
+          <span className="auth-logo-name">Credit Risk AI</span>
+        </div>
+        <h1 className="auth-heading">Sign in</h1>
+        <p className="auth-sub">Enter your credentials to access the dashboard</p>
+
+        {error && <Alert type="error">{error}</Alert>}
+
+        <Field label="Email address">
+          <input type="email" placeholder="you@example.com" value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()} />
+        </Field>
+        <Field label="Password">
+          <input type="password" placeholder="••••••••" value={password}
+            onChange={e => setPass(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()} />
+        </Field>
+
+        <button className="btn btn-primary" onClick={submit} disabled={loading}>
+          {loading ? <><span className="spin"/>&nbsp;Signing in...</> : "Sign in"}
+        </button>
+
+        <div className="auth-footer">
+          Don't have an account? <a onClick={goSignup}>Create one</a>
+        </div>
+        <div className="auth-demo">
+          Demo account: <strong>demo@cibil.ai</strong> / <strong>demo1234</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SignupPage({ onLogin, goLogin }) {
+  const [form, setForm]       = useState({ full_name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+  const s = k => v => setForm(f => ({ ...f, [k]: v }));
+
+  const submit = async () => {
+    if (!form.full_name || !form.email || !form.password)
+      return setError("All fields are required.");
+    if (form.password.length < 6)
+      return setError("Password must be at least 6 characters.");
+    setError(""); setLoading(true);
+    try {
+      const d = await api("/auth/signup", "POST", form);
+      onLogin(d);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-box">
+        <div className="auth-logo">
+          <div className="auth-logo-mark">CR</div>
+          <span className="auth-logo-name">Credit Risk AI</span>
+        </div>
+        <h1 className="auth-heading">Create account</h1>
+        <p className="auth-sub">Start predicting loan default risk instantly</p>
+
+        {error && <Alert type="error">{error}</Alert>}
+
+        <Field label="Full name">
+          <input type="text" placeholder="Arjun Sharma" value={form.full_name}
+            onChange={e => s("full_name")(e.target.value)} />
+        </Field>
+        <Field label="Email address">
+          <input type="email" placeholder="you@example.com" value={form.email}
+            onChange={e => s("email")(e.target.value)} />
+        </Field>
+        <Field label="Password" hint="Minimum 6 characters">
+          <input type="password" placeholder="••••••••" value={form.password}
+            onChange={e => s("password")(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()} />
+        </Field>
+
+        <button className="btn btn-primary" onClick={submit} disabled={loading}>
+          {loading ? <><span className="spin"/>&nbsp;Creating account...</> : "Create account"}
+        </button>
+        <div className="auth-footer">
+          Already have an account? <a onClick={goLogin}>Sign in</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── DASHBOARD ───────────────────────────────────────────── */
+function Dashboard({ modelInfo, history }) {
+  const total    = history.length;
+  const defaults = history.filter(h => h.result?.prediction === "DEFAULT").length;
+  const safe     = total - defaults;
+  const avgProb  = total
+    ? (history.reduce((s, h) => s + (h.result?.probability || 0), 0) / total * 100).toFixed(1)
+    : null;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-sub">Overview of your session predictions</p>
+      </div>
+
+      <div className="stats-row">
+        {[
+          { label: "Total Predictions", value: total, note: "This session" },
+          { label: "High Risk (Default)", value: defaults, note: "Flagged", color: defaults > 0 ? "var(--danger)" : undefined },
+          { label: "Low Risk (Safe)", value: safe, note: "Approved", color: safe > 0 ? "var(--success)" : undefined },
+          { label: "Avg. Default Prob.", value: avgProb ? `${avgProb}%` : "—", note: "Session average" },
+        ].map(s => (
+          <div className="stat-box" key={s.label}>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-value" style={s.color ? { color: s.color } : {}}>{s.value}</div>
+            <div className="stat-note">{s.note}</div>
+          </div>
+        ))}
+      </div>
+
+      {modelInfo && (
+        <div className="card">
+          <div className="card-title">Model Performance</div>
+          <div className="perf-grid">
+            {[
+              { label: "ROC-AUC", value: (modelInfo.roc_auc * 100).toFixed(1) + "%", note: "Discrimination" },
+              { label: "Accuracy", value: (modelInfo.accuracy * 100).toFixed(1) + "%", note: "Overall" },
+              { label: "Macro F1", value: (modelInfo.macro_f1 * 100).toFixed(1) + "%", note: "Balanced score" },
+              { label: "Threshold", value: (modelInfo.threshold * 100).toFixed(0) + "%", note: "Decision cutoff" },
+            ].map(p => (
+              <div className="perf-box" key={p.label}>
+                <div className="perf-label">{p.label}</div>
+                <div className="perf-value">{p.value}</div>
+                <div className="perf-note">{p.note}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 14, fontSize: 12, color: "var(--muted)" }}>
+            <strong style={{ color: "var(--text)" }}>Algorithm:</strong> {modelInfo.algorithm}&nbsp;&nbsp;
+            <strong style={{ color: "var(--text)" }}>Features:</strong> {modelInfo.features}&nbsp;&nbsp;
+            <strong style={{ color: "var(--text)" }}>Balancing:</strong> {modelInfo.balancing}
+          </div>
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div className="card">
+          <div className="card-title">Recent Predictions <span>Last 5</span></div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>CIBIL</th><th>Income</th><th>Loan Amt</th>
+                  <th>Missed</th><th>DPD</th><th>Probability</th><th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...history].reverse().slice(0, 5).map((h, i) => {
+                  const pct  = (h.result?.probability * 100).toFixed(1);
+                  const isD  = h.result?.prediction === "DEFAULT";
+                  return (
+                    <tr key={i}>
+                      <td><strong>{h.inputs?.cibil_score}</strong></td>
+                      <td>₹{(h.inputs?.annual_income / 100000).toFixed(1)}L</td>
+                      <td>₹{(h.inputs?.loan_amount / 100000).toFixed(1)}L</td>
+                      <td>{h.inputs?.missed_payments}</td>
+                      <td>{h.inputs?.dpd}</td>
+                      <td><strong style={{ color: isD ? "var(--danger)" : "var(--success)" }}>{pct}%</strong></td>
+                      <td><span className={`badge ${isD ? "badge-red" : "badge-green"}`}>{h.result?.prediction}</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── PREDICT PAGE ────────────────────────────────────────── */
+const DEFAULT_FORM = {
+  cibil_score: 720, annual_income: 700000, loan_amount: 400000,
+  loan_tenure: 36, active_loans: 1, credit_cards: 2,
+  missed_payments: 0, dpd: 0, credit_utilization: 30,
+  num_enquiries: 1, employment_type: "Salaried", city_tier: "Tier1"
+};
+
+function validateForm(f) {
+  const e = {};
+  if (!f.cibil_score || f.cibil_score < 300 || f.cibil_score > 900)
+    e.cibil_score = "Must be 300–900";
+  if (!f.annual_income || f.annual_income < 10000)
+    e.annual_income = "Must be ≥ ₹10,000";
+  if (!f.loan_amount || f.loan_amount < 10000)
+    e.loan_amount = "Must be ≥ ₹10,000";
+  if (f.missed_payments < 0 || f.missed_payments > 12)
+    e.missed_payments = "0–12";
+  if (f.dpd < 0 || f.dpd > 365)
+    e.dpd = "0–365";
+  if (f.credit_utilization < 0 || f.credit_utilization > 100)
+    e.credit_utilization = "0–100%";
+  if (f.active_loans < 0 || f.active_loans > 20)
+    e.active_loans = "0–20";
+  if (f.credit_cards < 0 || f.credit_cards > 20)
+    e.credit_cards = "0–20";
+  if (f.num_enquiries < 0 || f.num_enquiries > 20)
+    e.num_enquiries = "0–20";
+  return e;
+}
+
+function PredictPage({ token, onResult }) {
+  const [form, setForm]     = useState({ ...DEFAULT_FORM });
+  const [errors, setErrors] = useState({});
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  const set = useCallback((k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    setErrors(e => { const n = { ...e }; delete n[k]; return n; });
+  }, []);
+
+  const emi = Math.round(form.loan_amount * 0.01);
+  const lti = form.annual_income ? (form.loan_amount / form.annual_income).toFixed(2) : "—";
+  const emi_pct = form.annual_income
+    ? ((emi / (form.annual_income / 12)) * 100).toFixed(0)
+    : "—";
+
+  const submit = async () => {
+    const errs = validateForm(form);
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setApiError(""); setLoading(true); setResult(null);
+    try {
+      const payload = {
+        ...form,
+        credit_utilization: form.credit_utilization / 100   // convert % → fraction
+      };
+      const data = await api("/predict", "POST", payload, token);
+      setResult(data);
+      onResult({ inputs: form, result: data });
+    } catch (e) { setApiError(e.message); }
+    setLoading(false);
+  };
+
+  const reset = () => { setForm({ ...DEFAULT_FORM }); setResult(null); setErrors({}); setApiError(""); };
+
+  // result display helpers
+  const probPct = result ? (result.probability * 100) : 0;
+  const bannerClass = probPct >= result?.threshold_used * 100
+    ? "risk" : probPct > 35 ? "medium" : "safe";
+  const fillColor = bannerClass === "risk"
+    ? "var(--danger)" : bannerClass === "medium" ? "var(--warn)" : "var(--success)";
+  const recClass = result
+    ? (result.probability < 0.25 ? "approve"
+      : result.probability < result.threshold_used ? "caution" : "reject")
+    : "";
+
+  return (
+    <div className="page">
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h1 className="page-title">Predict Default Risk</h1>
+          <p className="page-sub">Enter applicant details — all fields accept typed values</p>
+        </div>
+        <button className="btn btn-outline" onClick={reset} style={{ width: "auto" }}>
+          Reset form
+        </button>
+      </div>
+
+      {apiError && <Alert type="error">{apiError}</Alert>}
+
+      {/* Section 1 — Credit Profile */}
+      <div className="card">
+        <div className="card-title">Credit Profile</div>
+        <div className="form-grid-3">
+          <NumField label="CIBIL Score" value={form.cibil_score}
+            onChange={v => set("cibil_score", v)} min={300} max={900}
+            hint="Range: 300 – 900" error={errors.cibil_score} />
+          <NumField label="Missed Payments (last 12m)" value={form.missed_payments}
+            onChange={v => set("missed_payments", v)} min={0} max={12}
+            hint="How many EMIs were missed" error={errors.missed_payments} />
+          <NumField label="Days Past Due (DPD)" value={form.dpd}
+            onChange={v => set("dpd", v)} min={0} max={365}
+            unit="days" hint="Current overdue days" error={errors.dpd} />
+          <NumField label="Active Loans" value={form.active_loans}
+            onChange={v => set("active_loans", v)} min={0} max={20}
+            hint="Total running loans" error={errors.active_loans} />
+          <NumField label="Credit Cards" value={form.credit_cards}
+            onChange={v => set("credit_cards", v)} min={0} max={20}
+            hint="Total cards held" error={errors.credit_cards} />
+          <NumField label="Credit Utilization" value={form.credit_utilization}
+            onChange={v => set("credit_utilization", v)} min={0} max={100}
+            unit="%" hint="% of credit limit used" error={errors.credit_utilization} />
+          <NumField label="Recent Enquiries" value={form.num_enquiries}
+            onChange={v => set("num_enquiries", v)} min={0} max={20}
+            hint="Credit bureau enquiries" error={errors.num_enquiries} />
+        </div>
+      </div>
+
+      {/* Section 2 — Loan Details */}
+      <div className="card">
+        <div className="card-title">Loan & Financial Details</div>
+        <div className="form-grid-3">
+          <NumField label="Annual Income" value={form.annual_income}
+            onChange={v => set("annual_income", v)} min={10000}
+            unit="₹" hint="Gross annual income" error={errors.annual_income} />
+          <NumField label="Loan Amount" value={form.loan_amount}
+            onChange={v => set("loan_amount", v)} min={10000}
+            unit="₹" hint="Total loan requested" error={errors.loan_amount} />
+          <SelectField label="Loan Tenure" value={form.loan_tenure}
+            onChange={v => set("loan_tenure", Number(v))}
+            options={[12,24,36,48,60,84,120].map(t => ({ value: t, label: `${t} months` }))} />
+        </div>
+
+        {/* Computed indicators */}
+        <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
+          {[
+            { label: "Estimated EMI", value: `₹${emi.toLocaleString("en-IN")}` },
+            { label: "Loan-to-Income", value: `${lti}×` },
+            { label: "EMI-to-Monthly Income", value: `${emi_pct}%` },
+          ].map(ind => (
+            <div key={ind.label} style={{ padding: "8px 14px", background: "#f8fafc",
+              border: "1px solid var(--border)", borderRadius: 8, fontSize: 13 }}>
+              <span style={{ color: "var(--muted)", fontSize: 11 }}>{ind.label}: </span>
+              <strong>{ind.value}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Section 3 — Applicant */}
+      <div className="card">
+        <div className="card-title">Applicant Profile</div>
+        <div className="form-grid-2">
+          <SelectField label="Employment Type" value={form.employment_type}
+            onChange={v => set("employment_type", v)}
+            options={["Salaried", "Self-Employed", "Business"]} />
+          <SelectField label="City Tier" value={form.city_tier}
+            onChange={v => set("city_tier", v)}
+            options={[
+              { value: "Tier1", label: "Tier 1 (Metro)" },
+              { value: "Tier2", label: "Tier 2 (Large city)" },
+              { value: "Tier3", label: "Tier 3 (Small town)" },
+            ]} />
+        </div>
+      </div>
+
+      <button className="btn btn-primary" onClick={submit} disabled={loading}
+        style={{ maxWidth: 240 }}>
+        {loading ? <><span className="spin"/>&nbsp;Analyzing...</> : "Run Prediction"}
+      </button>
+
+      {/* ── RESULT ── */}
+      {result && (
+        <div style={{ marginTop: 20 }}>
+          <div className={`result-banner ${bannerClass}`}>
+            <div>
+              <div className="verdict-label">Prediction Result</div>
+              <div className={`verdict-text ${bannerClass}`}>
+                {result.prediction === "DEFAULT" ? "⚠ Default Risk" : "✓ No Default"}
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div className="prob-big" style={{ color: fillColor }}>{probPct.toFixed(1)}%</div>
+              <div className="prob-sub">Default probability</div>
+            </div>
+          </div>
+
+          <div className="prob-bar-wrap">
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11,
+              color: "var(--muted)", marginBottom: 5 }}>
+              <span>0% — Safe</span>
+              <span>Threshold: {(result.threshold_used * 100).toFixed(0)}%</span>
+              <span>100% — Certain</span>
+            </div>
+            <div className="prob-track">
+              <div className="prob-fill"
+                style={{ width: `${Math.min(probPct, 100)}%`, background: fillColor }} />
+            </div>
+          </div>
+
+          <div className="metrics-row">
+            <div className="metric-box">
+              <div className="ml">Risk Level</div>
+              <div className="mv" style={{
+                color: result.risk_level === "HIGH" ? "var(--danger)"
+                  : result.risk_level === "MEDIUM" ? "var(--warn)" : "var(--success)"
+              }}>{result.risk_level}</div>
+            </div>
+            <div className="metric-box">
+              <div className="ml">Confidence</div>
+              <div className="mv">{result.confidence}</div>
+            </div>
+            <div className="metric-box">
+              <div className="ml">Threshold</div>
+              <div className="mv">{(result.threshold_used * 100).toFixed(0)}%</div>
+            </div>
+          </div>
+
+          <div className="card" style={{ marginBottom: 0 }}>
+            <div className="card-title">Risk Factor Breakdown</div>
+            <div className="factors-grid">
+              {result.risk_factors.map((f, i) => (
+                <div className="factor-row" key={i}>
+                  <div className={`factor-dot ${f.status}`} />
+                  <div>
+                    <div className="factor-name">{f.factor}</div>
+                    <div className="factor-detail">{f.detail}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className={`recommend ${recClass}`} style={{ marginTop: 14 }}>
+              <strong>Recommendation:</strong> {result.recommendation}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── HISTORY PAGE ────────────────────────────────────────── */
+function HistoryPage({ history, onClear }) {
+  if (!history.length) return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Prediction History</h1>
+        <p className="page-sub">All predictions from this session</p>
+      </div>
+      <div className="card">
+        <div className="empty">
+          <div className="empty-icon">📋</div>
+          <div className="empty-text">No predictions yet. Go to Predict to get started.</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page">
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h1 className="page-title">Prediction History</h1>
+          <p className="page-sub">{history.length} prediction{history.length !== 1 ? "s" : ""} this session</p>
+        </div>
+        <button className="btn btn-danger-ghost" style={{ width: "auto" }} onClick={onClear}>
+          Clear history
+        </button>
+      </div>
+
+      <div className="card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>CIBIL</th><th>Income</th><th>Loan</th>
+                <th>Tenure</th><th>Missed</th><th>DPD</th>
+                <th>Employment</th><th>Probability</th><th>Risk</th><th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...history].reverse().map((h, i) => {
+                const pct = (h.result?.probability * 100).toFixed(1);
+                const isD = h.result?.prediction === "DEFAULT";
+                const rl  = h.result?.risk_level;
+                return (
+                  <tr key={i}>
+                    <td style={{ color: "var(--muted)" }}>{history.length - i}</td>
+                    <td><strong>{h.inputs?.cibil_score}</strong></td>
+                    <td>₹{(h.inputs?.annual_income / 100000).toFixed(1)}L</td>
+                    <td>₹{(h.inputs?.loan_amount / 100000).toFixed(1)}L</td>
+                    <td>{h.inputs?.loan_tenure}m</td>
+                    <td>{h.inputs?.missed_payments}</td>
+                    <td>{h.inputs?.dpd}</td>
+                    <td>{h.inputs?.employment_type}</td>
+                    <td>
+                      <strong style={{ color: isD ? "var(--danger)" : parseFloat(pct) > 35 ? "var(--warn)" : "var(--success)" }}>
+                        {pct}%
+                      </strong>
+                    </td>
+                    <td>
+                      <span className={`badge ${rl === "HIGH" ? "badge-red" : rl === "MEDIUM" ? "badge-yellow" : "badge-green"}`}>
+                        {rl}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge ${isD ? "badge-red" : "badge-green"}`}>
+                        {h.result?.prediction}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── ROOT APP ────────────────────────────────────────────── */
+function App() {
+  const [authView, setAuthView]   = useState("login");
+  const [session, setSession]     = useState(null);
+  const [page, setPage]           = useState("dashboard");
+  const [modelInfo, setModelInfo] = useState(null);
+  const [history, setHistory]     = useState([]);
+
+  const handleLogin = useCallback(data => {
+    setSession(data);
+    api("/model/info", "GET", null, data.access_token)
+      .then(setModelInfo).catch(() => {});
+  }, []);
+
+  const handleLogout = () => { setSession(null); setHistory([]); setPage("dashboard"); };
+  const handleResult = useCallback(r => setHistory(h => [...h, r]), []);
+  const handleClear  = () => setHistory([]);
+
+  if (!session) {
+    if (authView === "login")
+      return <LoginPage onLogin={handleLogin} goSignup={() => setAuthView("signup")} />;
+    return <SignupPage onLogin={handleLogin} goLogin={() => setAuthView("login")} />;
+  }
+
+  const u       = session.user;
+  const initials = (u.full_name || "U").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+
+  const navItems = [
+    { id: "dashboard", icon: "▦", label: "Dashboard" },
+    { id: "predict",   icon: "⚡", label: "Predict" },
+    { id: "history",   icon: "≡",  label: "History" },
+  ];
+
+  return (
+    <div className="layout">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <div className="sidebar-mark">CR</div>
+            <span className="sidebar-name">Credit Risk AI</span>
+          </div>
+        </div>
+
+        <nav className="nav">
+          {navItems.map(n => (
+            <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`}
+              onClick={() => setPage(n.id)}>
+              <span className="nav-icon">{n.icon}</span>
+              {n.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-card">
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--primary)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                {initials}
+              </div>
+              <div style={{ overflow: "hidden" }}>
+                <div className="user-name">{u.full_name}</div>
+                <div className="user-email">{u.email}</div>
+              </div>
+            </div>
+          </div>
+          <button className="nav-item" style={{ color: "var(--danger)", marginTop: 2 }}
+            onClick={handleLogout}>
+            <span className="nav-icon">↩</span> Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main className="main">
+        {page === "dashboard" && <Dashboard modelInfo={modelInfo} history={history} />}
+        {page === "predict"   && <PredictPage token={session.access_token} onResult={handleResult} />}
+        {page === "history"   && <HistoryPage history={history} onClear={handleClear} />}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
